@@ -6,8 +6,8 @@ const docDataSchema = new Schema({
       type: Object,
     },
     _id: {
-        type: String
-    }
+       type: String,
+  }
     // doc: {
     //     type: Schema.Types.ObjectId,
     //     ref: 'Docs',
