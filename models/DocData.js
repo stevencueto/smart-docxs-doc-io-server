@@ -2,16 +2,18 @@ const mongoose = require('mongoose')
 const Schema = mongoose.Schema;
 
 const docDataSchema = new Schema({
-  data: {
+    data: {
       type: Object,
     },
-    doc: {
-        type: Schema.Types.ObjectId,
-        ref: 'Docs',
-        required: "true"
+    _id: {
+        type: String
     }
+    // doc: {
+    //     type: Schema.Types.ObjectId,
+    //     ref: 'Docs',
+    // }
 },{timestamps: true})
 
 
-const DocData = mongoose.model('DocData', docsSchema)
-module.exports = Docs;
+const DocData = mongoose.model('DocData', docDataSchema)
+module.exports = DocData;
