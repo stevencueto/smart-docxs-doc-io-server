@@ -5,9 +5,6 @@ const docDataSchema = new Schema({
     data: {
       type: Object,
     },
-    _id: {
-       type: String,
-  }
     // doc: {
     //     type: Schema.Types.ObjectId,
     //     ref: 'Docs',

@@ -20,16 +20,17 @@ mongoose.connect(mongoURI, { useNewUrlParser: true},
   
 const findOrCreateDocument = async (id) =>{
     try{
-        const document = await DocData.findById(id)
-        if(document){
-            return document
-        }else{
+        if(id !== ""){
+            const document = await DocData.findById(id)
+            if(document){
+                return document
+            }
+        }
             console.log('new doc')
-            const doc = await  DocData.create({_id: id, data: ""})
-            return doc
-        } 
+            const doc = await  DocData.create({data: {}})
+            return doc 
     }catch(err){
-        console.log(err)
+        console.log(err.message)
     }
 }
 
@@ -57,11 +58,11 @@ io.on('connection', (socket)=>{
                 try{
                     await DocData.findByIdAndUpdate(id, {data}, {new:true})
                 }catch(err){
-                    console.log(err)
+                    console.log(err.message)
                 } 
             })   
         }catch(err){
-            console.log(err)
+            console.log(err.message)
         }
     })
 })
