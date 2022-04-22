@@ -5,10 +5,10 @@ const docDataSchema = new Schema({
     data: {
       type: Object,
     },
-    // doc: {
-    //     type: Schema.Types.ObjectId,
-    //     ref: 'Docs',
-    // }
+    document: {
+      type: Schema.Types.ObjectId,
+      ref: 'Docs',
+    },
 },{timestamps: true})
 
 
