@@ -1,11 +1,7 @@
 require('dotenv').config()
-const express = require('express');
-const app = express();
-const http = require('http');
-const server = http.createServer(app);
-const { Server } = require("socket.io");
-const cors = require('cors')
-const io = new Server(server, {
+const Server = require('socket.io')
+const PORT = process.env.PORT || 3002;
+const io = Server(PORT, {
     cors: {
         origin: ["*"],
         methods: ["GET", "POST"],
@@ -14,11 +10,6 @@ const io = new Server(server, {
         // credentials: true
       }
 });
-app.use(cors)
-
-
-const PORT = process.env.PORT || 3002;
-const morgan = require('morgan')
 const mongoose = require('mongoose')
 const mongoURI = process.env.MONGO_URI
 
@@ -30,15 +21,28 @@ mongoose.connect(mongoURI, { useNewUrlParser: true},
 const db = mongoose.connection
 db.on('error', err => console.log(err.message + ' is Mongod not running?'))
 db.on('disconnected', () => console.log('mongo disconnected', mongoURI))
-
-
-app.use(morgan)
-app.use(express.urlencoded({ extended: true }))
-app.use(express.json())
-
-const { socket } = require('./controller/socketController')
-socket(io)
-
-server.listen(PORT, () => {
-    console.log(`listening on ${PORT}`);
-});
+const DocData = require('./models/DocData')
+io.on('connection', (socket)=>{
+    console.log(`conected to ${PORT}`)
+    socket.on('find-document', async (id)=>{
+        try{
+            const document = await DocData.findById(mongoose.Types.ObjectId(id))
+            socket.join(id)
+            socket.emit('send-document', document)
+            
+            socket.on('send-changes', (delta)=>{
+                socket.broadcast.to(id).emit('receive-changes', delta)
+            })
+            
+            socket.on('save-document', async(data)=>{
+                try{
+                    await DocData.findByIdAndUpdate(mongoose.Types.ObjectId(id), {data}, {new:true})
+                }catch(err){
+                    console.log(err.message, "or here")
+                } 
+            })   
+        }catch(err){
+            console.log(err.message, 'here?')
+        }
+    })
+})
