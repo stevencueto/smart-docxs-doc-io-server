@@ -41,31 +41,30 @@ io.use(async(socket, next)=>{
     const token = socket.handshake?.auth?.token
     if (token){
       jwt.verify(token, process.env.TOKEN_GENERATOR, function(err, decoded) {
-        if (err) return next(new Error('Authentication error'));
-        socket.decoded = decoded;
+        if (err) return socketError(socket);
+        socket.decoded = decoded
         next();
       });
-    }
-    else {
-      next(new Error('Authentication error'));
+    }else {
+        socketError(socket)
     }    
   })
 
 io.on('connection', (socket)=>{
     socket.on('find-document', async (id)=>{
         try{
-            socket.join(id)
             const isOk = await axios.get(`http://localhost:3003/doc/data/${id}`, {
                 headers: { "x-access-token": socket.handshake?.auth?.token }})
-                console.log('User not permited')
+                socket.join(id)
                 if(isOk.data.success){
-                    console.log(canUserSee(isOk.data.data, socket.decoded._id))
-                    if(!canUserSee(isOk.data.data, socket.decoded._id)){
-                        socket.emit('send-error', "User not permited")
-                       throw new Error('User not permited')
+                    if(!canUserSee(isOk.data.data, socket.decoded.user._id)){
+                       socket.emit('close-editor', "User not permited")
+                        socket.disconnect() 
+                       throw new Error('User not permi ted')
                     }
                 }else{
-                    socket.emit('send-error', "User not permited")
+                    socket.emit('close-editor', "User not permited")
+                    socket.disconnect() 
                     throw new Error('User not permited')
                 }
             const document = await DocData.findById(mongoose.Types.ObjectId(id))
@@ -89,3 +88,11 @@ io.on('connection', (socket)=>{
 })
 
 
+const socketError = (socket)=>{
+    socket.on('conection', (id)=>{
+        socket.join(id)
+        socket.emit('close-editor', "User not permited")
+        socket.disconnect() 
+        throw new Error('User not permited')
+    })
+} 
